@@ -1,0 +1,31 @@
+name: GitHub Actions Demo
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+jobs:
+  DeployToRegistry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Docker Build & Push Action
+        uses: mr-smithers-excellent/docker-build-push@v5.6
+        with:
+          image: cyberpsych0siis/garbage-collector
+          tags: latest
+          registry: thallosaurus.de
+          buildArgs: DEBUG=$DEBUG
+          dockerfile: Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Notify Production Server
+        uses: wei/curl@v1
+        with:
+          args: 
+            "-H 'Authorization: Bearer ${{ secrets.WATCHTOWER_UPDATE_TOKEN }}' ${{ secrets.WATCHTOWER_UPDATE_URL }}"
